@@ -1,8 +1,13 @@
 import React from 'react'
+import { JobService } from '@/services/vacancies.service'
 import Admin from '@/components/templates/Admin'
 
-export default function AdminPage() {
+const useJobService = new JobService()
+
+export default async function AdminPage() {
+    const vacancies = await useJobService.getVacancies()
+    
     return (
-        <Admin />
+        <Admin dataVacancy={vacancies}/>
     )
 }

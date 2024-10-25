@@ -7,19 +7,21 @@ import styles from './Card.module.sass'
 
 interface CardProps {
   title: string;
-  subtitle: string;
+  description?: string;
+  status?: string;
+  subtitle?: string;
   extraInfo?: string;
   company?: string;
   type?: 'companies' | 'vacancies';
 }
 
-export const Card = ({ title, subtitle, extraInfo, company, type }: CardProps) => {
+export const Card = ({ title, description, status, company, type }: CardProps) => {
   return (
     <Box className={styles.card}>
       <div className={styles.header}>{title}</div>
       <div className={styles.content}>
-        <p>{subtitle}</p>
-        <p>{extraInfo}</p>
+        <p>{description}</p>
+        <p>{status}</p>
         {company && <p>{company}</p>}   
       </div>
       <Box className={styles.groupBtn}>

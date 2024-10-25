@@ -3,17 +3,18 @@ import { Card } from '@/components/molecules/Card/Card'
 import Button from '@/components/atoms/Button/Button'
 import styles from '../Container/Container.module.sass'
 import { Company, Vacancy } from '@/helpers/data'
+import { IVacancy } from '@/models/jobs.model'
 import { MdOutlineAddCircleOutline } from "react-icons/md";
 
 
 interface ContainerProps {
-  items: (Company | Vacancy)[];
+  items: (Company | IVacancy)[];
   type: 'companies' | 'vacancies';
   openModalAdd: () => void;
 }
 
 const Container = ({ items, type, openModalAdd }: ContainerProps) => {
-  const getCardData = (item: Company | Vacancy) => {
+  const getCardData = (item: Company | IVacancy) => {
     if (type === 'companies') {
       const company = item as Company;
       return {
@@ -22,12 +23,12 @@ const Container = ({ items, type, openModalAdd }: ContainerProps) => {
         extraInfo: `Contacto: ${company.contact}`
       };
     } else {
-      const vacancy = item as Vacancy;
+      const vacancy = item as IVacancy;
       return {
         title: vacancy.title,
-        subtitle: vacancy.company,
-        extraInfo: `Estado: ${vacancy.status}`,
-        company: `Compañía: ${vacancy.company}`
+        description: vacancy.description,
+        status: `Estado: ${vacancy.status}`,
+        company: `Compañía: ${vacancy.company.name}`
       };
     }
   };
@@ -47,8 +48,8 @@ const Container = ({ items, type, openModalAdd }: ContainerProps) => {
             <Card
               key={item.id}
               title={cardData.title}
-              subtitle={cardData.subtitle}
-              extraInfo={cardData.extraInfo}
+              description={cardData.description}
+              status={cardData.status}
               company={cardData.company}
               type={type}
             />
