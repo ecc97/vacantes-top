@@ -3,20 +3,21 @@ import { Card } from '@/components/molecules/Card/Card'
 import Button from '@/components/atoms/Button/Button'
 import styles from '../Container/Container.module.sass'
 import { Company, Vacancy } from '@/helpers/data'
-import { IVacancy } from '@/models/jobs.model'
+import { IVacancy, ICompany } from '@/models/jobs.model'
 import { MdOutlineAddCircleOutline } from "react-icons/md";
 
+type ItemType = IVacancy | ICompany
 
 interface ContainerProps {
-  items: (Company | IVacancy)[];
+  items: ItemType[];
   type: 'companies' | 'vacancies';
   openModalAdd: () => void;
 }
 
 const Container = ({ items, type, openModalAdd }: ContainerProps) => {
-  const getCardData = (item: Company | IVacancy) => {
+  const getCardData = (item: ItemType) => {
     if (type === 'companies') {
-      const company = item as Company;
+      const company = item as ICompany;
       return {
         title: company.name,
         subtitle: company.location,
@@ -47,10 +48,7 @@ const Container = ({ items, type, openModalAdd }: ContainerProps) => {
           return (
             <Card
               key={item.id}
-              title={cardData.title}
-              description={cardData.description}
-              status={cardData.status}
-              company={cardData.company}
+              {...cardData}
               type={type}
             />
           );

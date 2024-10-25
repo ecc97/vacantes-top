@@ -1,5 +1,5 @@
-export interface IVacancyResponse {
-    content: IVacancy[]
+// Interfaces base para paginación
+interface IBasePaginatedResponse {
     pageable: IPageable
     totalPages: number
     totalElements: number
@@ -7,24 +7,9 @@ export interface IVacancyResponse {
     numberOfElements: number
     size: number
     number: number
-    sort: ISort2
+    sort: ISort
     first: boolean
     empty: boolean
-}
-
-export interface IVacancy {
-    id: number
-    title: string
-    description: string
-    status: string
-    company: ICompany
-}
-
-export interface ICompany {
-    id: string
-    name: string
-    location: string
-    contact: string
 }
 
 export interface IPageable {
@@ -42,8 +27,27 @@ export interface ISort {
     empty: boolean
 }
 
-export interface ISort2 {
-    sorted: boolean
-    unsorted: boolean
-    empty: boolean
+// Interfaces para Vacantes
+export interface IVacancyResponse extends IBasePaginatedResponse {
+    content: IVacancy[]
+}
+
+export interface IVacancy {
+    id: number
+    title: string
+    description: string
+    status: string
+    company: ICompany
+}
+
+// Interfaces para Compañías
+export interface ICompanyResponse extends IBasePaginatedResponse {
+    content: ICompany[]
+}
+
+export interface ICompany {
+    id: string
+    name: string
+    location: string
+    contact: string
 }

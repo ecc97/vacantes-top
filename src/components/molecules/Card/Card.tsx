@@ -15,13 +15,13 @@ interface CardProps {
   type?: 'companies' | 'vacancies';
 }
 
-export const Card = ({ title, description, status, company, type }: CardProps) => {
+export const Card = ({ title, description, status, subtitle, extraInfo, company, type }: CardProps) => {
   return (
     <Box className={styles.card}>
       <div className={styles.header}>{title}</div>
       <div className={styles.content}>
-        <p>{description}</p>
-        <p>{status}</p>
+        <p>{type === 'vacancies' ? description : subtitle}</p>
+        <p>{type === 'vacancies' ? status : extraInfo}</p>
         {company && <p>{company}</p>}   
       </div>
       <Box className={styles.groupBtn}>

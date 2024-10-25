@@ -1,6 +1,6 @@
 "use client"
 import React, {useState} from 'react'
-import { IVacancyResponse, IVacancy } from '@/models/jobs.model'
+import { IVacancyResponse, IVacancy, ICompany } from '@/models/jobs.model'
 import Container from '../organisms/Container/Container'
 import Box from '../molecules/Box'
 import Button from '../atoms/Button/Button'
@@ -19,9 +19,10 @@ import styles from './Admin.module.sass'
 
 interface AdminTemplateProps {
     dataVacancy: IVacancy[]
+    dataCompany: ICompany[]
 }
 
-export default function Admin({dataVacancy}: AdminTemplateProps) {
+export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
     const dataVacancies = dataVacancy
     const [isActiveTab, setIsActiveTab] = useState<'companies' | 'vacancies'>('vacancies')
     const [isVacancyModalOpen, setIsVacancyModalOpen] = useState<boolean>(false)
@@ -87,7 +88,7 @@ export default function Admin({dataVacancy}: AdminTemplateProps) {
                 </Box>
             </div>
             <Container
-                items={isActiveTab === 'companies' ? companies : dataVacancies}
+                items={isActiveTab === 'companies' ? dataCompany : dataVacancies}
                 type={isActiveTab}
                 openModalAdd={handleOpenModal}
             />
