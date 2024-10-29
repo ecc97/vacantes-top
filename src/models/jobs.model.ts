@@ -33,11 +33,11 @@ export interface IVacancyResponse extends IBasePaginatedResponse {
 }
 
 export interface IVacancy {
-    id: number
+    id?: number
     title: string
     description: string
     status: string
-    company: ICompany
+    company?: ICompany
 }
 
 // Interfaces para Compañías
@@ -46,7 +46,7 @@ export interface ICompanyResponse extends IBasePaginatedResponse {
 }
 
 export interface ICompany {
-    id: string
+    id?: string
     name: string
     location: string
     contact: string
