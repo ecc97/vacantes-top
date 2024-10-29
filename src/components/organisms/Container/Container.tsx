@@ -4,7 +4,10 @@ import Button from '@/components/atoms/Button/Button'
 import styles from '../Container/Container.module.sass'
 import { Company, Vacancy } from '@/helpers/data'
 import { IVacancy, ICompany } from '@/models/jobs.model'
+import { JobService } from '@/services/vacancies.service'
+import { CompanyService } from '@/services/companies.service'
 import { MdOutlineAddCircleOutline } from "react-icons/md";
+import { useRouter } from 'next/navigation'
 
 type ItemType = IVacancy | ICompany
 
@@ -12,9 +15,25 @@ interface ContainerProps {
   items: ItemType[];
   type: 'companies' | 'vacancies';
   openModalAdd: () => void;
+  openModalEdit: (item: ItemType) => void;
 }
 
-const Container = ({ items, type, openModalAdd }: ContainerProps) => {
+const jobService = new JobService()
+const companyService = new CompanyService()
+
+
+const Container = ({ items, type, openModalAdd, openModalEdit }: ContainerProps) => {
+  const router = useRouter()
+  const handleDelete = async (id: string) => {
+    const confirmed = confirm('¿Estás seguro de que quieres eliminar este elemento?')
+    if (!confirmed) return
+    if (type === 'companies') {
+      await companyService.deleteCompany(id)
+    } else {
+      await jobService.deleteVacancy(Number(id))
+    }
+    router.refresh()
+  }
   const getCardData = (item: ItemType) => {
     if (type === 'companies') {
       const company = item as ICompany;
@@ -29,7 +48,7 @@ const Container = ({ items, type, openModalAdd }: ContainerProps) => {
         title: vacancy.title,
         description: vacancy.description,
         status: `Estado: ${vacancy.status}`,
-        company: `Compañía: ${vacancy.company.name}`
+        company: `Compañía: ${vacancy.company!.name}`
       };
     }
   };
@@ -50,6 +69,8 @@ const Container = ({ items, type, openModalAdd }: ContainerProps) => {
               key={item.id}
               {...cardData}
               type={type}
+              onEdit={() => openModalEdit(item)} 
+              onDelete={() => handleDelete(item.id!.toString())}
             />
           );
         })}

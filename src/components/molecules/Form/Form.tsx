@@ -2,7 +2,7 @@ import styles from './Form.module.sass'
 
 interface FormProps {
     children: React.ReactNode;
-    onSubmit?: (e: React.FormEvent) => void;
+    onSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
     className?: string;
 }
 

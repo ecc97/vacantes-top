@@ -13,9 +13,11 @@ interface CardProps {
   extraInfo?: string;
   company?: string;
   type?: 'companies' | 'vacancies';
+  onEdit: () => void
+  onDelete: () => Promise<void>
 }
 
-export const Card = ({ title, description, status, subtitle, extraInfo, company, type }: CardProps) => {
+export const Card = ({ title, description, status, subtitle, extraInfo, company, type, onEdit, onDelete }: CardProps) => {
   return (
     <Box className={styles.card}>
       <div className={styles.header}>{title}</div>
@@ -25,10 +27,10 @@ export const Card = ({ title, description, status, subtitle, extraInfo, company,
         {company && <p>{company}</p>}   
       </div>
       <Box className={styles.groupBtn}>
-        <Button variant="secondary">
+        <Button variant="secondary" onClick={onEdit}>
           <MdModeEditOutline className={type === 'vacancies' ? `${styles.iconEditVacant}` : `${styles.iconEditCompany}`}/>
         </Button>
-        <Button variant="secondary">
+        <Button variant="secondary" onClick={onDelete}>
           <FaRegTrashAlt className={styles.iconDelete}/>
         </Button>
       </Box>

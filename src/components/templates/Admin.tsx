@@ -1,6 +1,9 @@
 "use client"
 import React, {useState} from 'react'
 import { IVacancyResponse, IVacancy, ICompany } from '@/models/jobs.model'
+import { CompanyService } from '@/services/companies.service'
+import { JobService } from '@/services/vacancies.service'
+import { useRouter } from 'next/navigation'
 import Container from '../organisms/Container/Container'
 import Box from '../molecules/Box'
 import Button from '../atoms/Button/Button'
@@ -24,6 +27,9 @@ interface AdminTemplateProps {
 
 export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
     const dataVacancies = dataVacancy
+    const router = useRouter()
+    const useCompanyService = new CompanyService()
+    const useJobService = new JobService()
     const [isActiveTab, setIsActiveTab] = useState<'companies' | 'vacancies'>('vacancies')
     const [isVacancyModalOpen, setIsVacancyModalOpen] = useState<boolean>(false)
     const [isCompanyModalOpen, setIsCompanyModalOpen] = useState<boolean>(false)
@@ -32,7 +38,7 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
         title: '',
         description: '',
         status: '',
-        company: '',
+        company: {} as ICompany,
     })
 
     const [companyForm, setCompanyForm] = useState({
@@ -41,16 +47,54 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
         contact: '',
     })
 
-    const handleVacancySubmit = (e: React.FormEvent) => {
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [currentEditId, setCurrentEditId] = useState<number | string | null>(null);
+
+
+    const handleVacancySubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        console.log('Vacancy Form:', vacancyForm)
-        setIsVacancyModalOpen(false)
+        try {
+            const vacancyData = {
+                title: vacancyForm.title,
+                description: vacancyForm.description,
+                status: vacancyForm.status,
+                companyId: vacancyForm.company.id!.toString(), 
+            };
+            if (isEditMode && currentEditId) {
+                // Editamos la vacante
+                await useJobService.updateVacancy({ ...vacancyData, id: Number(currentEditId) });
+            } else {
+                // Creamos nueva vacante
+                await useJobService.addVacancy(vacancyData);
+            }
+            setVacancyForm({ title: '', description: '', status: '', company: {} as ICompany });
+            setIsVacancyModalOpen(false)
+            setIsEditMode(false);
+            router.refresh()
+        } catch (error) {
+            console.error('Error en añadir vacante:', error)
+        }
     }
 
-    const handleCompanySubmit = (e: React.FormEvent) => {
+    const handleCompanySubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        console.log('Company Form:', companyForm)
-        setIsCompanyModalOpen(false)
+        try {
+            if (isEditMode && currentEditId) {
+                // Editamos la compañía
+                await useCompanyService.updateCompany(currentEditId as string, companyForm);
+            } else {
+                // Creamos nueva compañía
+                await useCompanyService.addCompany(companyForm);
+            }
+    
+            // Reiniciamos el formulario y refrescamos la página.
+            setCompanyForm({ name: '', location: '', contact: '' });
+            setIsCompanyModalOpen(false);
+            setIsEditMode(false); // Salimos del modo edición.
+            router.refresh();
+        } catch(error) {
+            console.error('Error en añadir compañía:', error)
+        }
     }
 
     const handleOpenModal = () => {
@@ -60,6 +104,25 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
             setIsVacancyModalOpen(true)
         }
     }
+
+    const handleEditVacancy = (vacancy: IVacancy) => {
+        setIsEditMode(true);
+        setCurrentEditId(vacancy.id!);
+        setVacancyForm({
+        title: vacancy.title,
+        description: vacancy.description,
+        status: vacancy.status,
+        company: vacancy.company || {} as ICompany,
+    }); // Cargamos los datos en el formulario.
+        setIsVacancyModalOpen(true); // Abrimos el modal.
+    };
+    
+    const handleEditCompany = (company: ICompany) => {
+        setIsEditMode(true);
+        setCurrentEditId(company.id!);
+        setCompanyForm(company); // Cargamos los datos en el formulario.
+        setIsCompanyModalOpen(true); // Abrimos el modal.
+    };
 
     return (
         <div className={styles.container}>
@@ -91,13 +154,18 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                 items={isActiveTab === 'companies' ? dataCompany : dataVacancies}
                 type={isActiveTab}
                 openModalAdd={handleOpenModal}
+                openModalEdit={(item) =>
+                    isActiveTab === 'vacancies'
+                      ? handleEditVacancy(item as IVacancy)
+                      : handleEditCompany(item as ICompany)
+                  }
             />
 
             {/* Modal de Vacante */}
             <Modal
                 isOpen={isVacancyModalOpen}
-                onClose={() => setIsVacancyModalOpen(false)}
-                title="Agregar Vacante"
+                onClose={() => {setIsVacancyModalOpen(false); setIsEditMode(false); setCurrentEditId(null); setVacancyForm({ title: '', description: '', status: '', company: {} as ICompany });}}
+                title={isEditMode ? "Editar Vacante" : "Agregar Vacante"}
             >
                 <Form onSubmit={handleVacancySubmit}>
                     <Box className={styles.inputBox}>
@@ -107,10 +175,13 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                             id='title'
                             name="title"
                             value={vacancyForm.title}
-                            onChange={(e) => setVacancyForm({
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                                const { name, value } = e.target
+                                setVacancyForm({
                                 ...vacancyForm,
-                                title: e.target.value
+                                [name]: value
                             })}
+                            }
                             required
                         />
                     </Box>
@@ -120,10 +191,11 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                             name="description"
                             id='description'
                             value={vacancyForm.description}
-                            onChange={(e) => setVacancyForm({
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+                                setVacancyForm({
                                 ...vacancyForm,
                                 description: e.target.value
-                            })}
+                            })}}
                             required
                         />
                     </Box>
@@ -133,13 +205,13 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                                 name="status"
                                 id='status'
                                 value={vacancyForm.status}
-                                onChange={(e) => setVacancyForm({
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setVacancyForm({
                                     ...vacancyForm,
                                     status: e.target.value
                                 })}
                                 options={[
-                                    { value: 'OPEN', label: 'Abierta' },
-                                    { value: 'CLOSED', label: 'Cerrada' }
+                                    { value: 'ACTIVE', label: 'Abierta' },
+                                    { value: 'INACTIVE', label: 'Cerrada' }
                                 ]}
                                 placeholder="Seleccione un estado"
                             />
@@ -149,20 +221,22 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                             <Select
                                 name="company"
                                 id='company'
-                                value={vacancyForm.company}
-                                onChange={(e) => setVacancyForm({
-                                    ...vacancyForm,
-                                    company: e.target.value
-                                })}
-                                options={companies.map(company => ({
-                                    value: company.id.toString(),
+                                value={vacancyForm.company?.id || ''}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                                    const selectedCompany = dataCompany.find(c => c.id === (e.target.value));
+                                    if (selectedCompany) {
+                                      setVacancyForm({ ...vacancyForm, company: selectedCompany });
+                                    }
+                                  }}
+                                options={dataCompany.map(company => ({
+                                    value: company.id!.toString(),
                                     label: company.name
                                 }))}
                                 placeholder="Seleccione una compañía"
                             />
                     </Box>
                     <Button type="submit" variant="primary">
-                        Agregar
+                        {isEditMode ? "Actualizar" : "Agregar"}
                     </Button>
                 </Form>
             </Modal>
@@ -170,8 +244,8 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
             {/* Modal de Compañía */}
             <Modal
                 isOpen={isCompanyModalOpen}
-                onClose={() => setIsCompanyModalOpen(false)}
-                title="Agregar Compañía"
+                onClose={() => {setIsCompanyModalOpen(false); setIsEditMode(false); setCurrentEditId(null); setCompanyForm({ name: '', location: '', contact: '' });}}
+                title={isEditMode ? "Editar Compañía" : "Agregar Compañía"}  
             >
                 <Form onSubmit={handleCompanySubmit}>
                     <Box className={styles.inputBox}>
@@ -220,7 +294,7 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                         />
                     </Box>
                     <Button type="submit" variant="tertiary">
-                        Agregar
+                        {isEditMode ? "Actualizar" : "Agregar"}
                     </Button>
                 </Form>
             </Modal>
