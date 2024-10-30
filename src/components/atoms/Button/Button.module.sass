@@ -1,3 +1,5 @@
+@import '../../../assets/sass/_variables'
+  
 .button 
   padding: 0.5rem 1rem
   border-radius: 0.5rem
@@ -7,30 +9,30 @@
   transition: all 0.2s
 
   &.primary 
-    background-color: #8b5cf6
+    background-color: $boton-morado
     color: white
     
     &:hover 
-      background-color: #7c3aed
+      background-color: $boton-morado-hover
 
 
   &.secondary 
     background-color: transparent
-    color: #6b7280
+    color: $texto-gris-claro
     
     &:hover 
-      background-color: #f3f4f6
+      background-color: $bg-gris-claro-inact
 
   &.tertiary 
-    background-color: #ec4899
-    color: white
+    background-color: $boton-rosa
+    color: $texto-blanco
 
     &:hover
-      background-color: #d6336c
+      background-color: $boton-rosa-hover
   
   &:disabled
     cursor: none
-    background-color: #f3f4f6
-    color: #6b7280
+    background-color: $bg-gris-claro-inact
+    color: $texto-gris-claro
 
   
