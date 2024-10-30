@@ -8,12 +8,12 @@ export class JobService {
         this.httpClient = new HttpClient();
     }
 
-    async getVacancies(): Promise<IVacancy[]> {
+    async getVacancies(page: number, size: number): Promise<IVacancyResponse> {
         try {
-            const response: IVacancyResponse = await this.httpClient.get<IVacancyResponse>('vacants');
+            const response: IVacancyResponse = await this.httpClient.get<IVacancyResponse>(`vacants?page=${page}&size=${size}`);
             // console.log('Vacancies response:', response);
 
-            return response.content || response;
+            return response;
             // const vacanciesResponse = await this.httpClient.get<IVacancyResponse>('vacancies');
             // return vacanciesResponse.content;
         } catch (error) {

@@ -1,6 +1,6 @@
 "use client"
 import React, {useState} from 'react'
-import { IVacancyResponse, IVacancy, ICompany } from '@/models/jobs.model'
+import { IVacancyResponse, ICompanyResponse, IVacancy, ICompany } from '@/models/jobs.model'
 import { CompanyService } from '@/services/companies.service'
 import { JobService } from '@/services/vacancies.service'
 import { useRouter } from 'next/navigation'
@@ -21,11 +21,12 @@ import { BsBuildingsFill } from "react-icons/bs";
 import styles from './Admin.module.sass'
 
 interface AdminTemplateProps {
-    dataVacancy: IVacancy[]
-    dataCompany: ICompany[]
+    dataVacancy: IVacancyResponse
+    dataCompany: ICompanyResponse
 }
 
 export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
+    console.log('DataCompany:', dataCompany.content);
     const dataVacancies = dataVacancy
     const router = useRouter()
     const useCompanyService = new CompanyService()
@@ -151,7 +152,7 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                 </Box>
             </div>
             <Container
-                items={isActiveTab === 'companies' ? dataCompany : dataVacancies}
+                items={isActiveTab === 'companies' ? dataCompany.content : dataVacancies.content}
                 type={isActiveTab}
                 openModalAdd={handleOpenModal}
                 openModalEdit={(item) =>
@@ -223,12 +224,12 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                                 id='company'
                                 value={vacancyForm.company?.id || ''}
                                 onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
-                                    const selectedCompany = dataCompany.find(c => c.id === (e.target.value));
+                                    const selectedCompany = dataCompany.content.find(c => c.id === (e.target.value));
                                     if (selectedCompany) {
                                       setVacancyForm({ ...vacancyForm, company: selectedCompany });
                                     }
                                   }}
-                                options={dataCompany.map(company => ({
+                                options={dataCompany.content.map(company => ({
                                     value: company.id!.toString(),
                                     label: company.name
                                 }))}
@@ -298,7 +299,7 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                     </Button>
                 </Form>
             </Modal>
-            <Pagination />
+            <Pagination dataCompany={dataCompany} dataVacants={dataVacancies} type={isActiveTab}/>
         </div>
     )
 }

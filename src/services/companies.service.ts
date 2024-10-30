@@ -8,11 +8,11 @@ export class CompanyService {
         this.httpClient = new HttpClient();
     }
 
-    async getCompanies(): Promise<ICompany[]> {
+    async getCompanies(page: number, size: number): Promise<ICompanyResponse> {
         try {
-            const response: ICompanyResponse = await this.httpClient.get<ICompanyResponse>('company');
+            const response: ICompanyResponse = await this.httpClient.get<ICompanyResponse>(`company?page=${page}&size=${size}`);
             // console.log('Companies response:', response);
-            return response.content || response;
+            return response;
         } catch (error) {
             console.error('Error getting companies:', error);
             throw error;
