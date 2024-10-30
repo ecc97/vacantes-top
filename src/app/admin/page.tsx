@@ -10,7 +10,7 @@ interface IParamsProps {
     searchParams: {
       page: string;
       size: string;
-      name: string;
+      name: string; 
     }
   }
   
@@ -25,10 +25,11 @@ interface IParamsProps {
 export default async function AdminPage({searchParams}: IParamsProps) {
     const page = searchParams.page ? parseInt(searchParams.page) : 1;
     const size = searchParams.size ? parseInt(searchParams.size) : 5;
+    const name = searchParams.name || "";
     const vacancies = await useJobService.getVacancies(page, size)
-    const companies = await useCompanyService.getCompanies(page, size)
+    const companies = await useCompanyService.getCompanies(page, size, name)
     
     return (
-        <Admin dataVacancy={vacancies} dataCompany={companies}/>
+        <Admin dataVacancy={vacancies} dataCompany={companies} isActiveTabPag={searchParams.name ? "vacancies" : "companies"}/>
     )
 }

@@ -5,6 +5,7 @@ import { CompanyService } from '@/services/companies.service'
 import { JobService } from '@/services/vacancies.service'
 import { useRouter } from 'next/navigation'
 import Container from '../organisms/Container/Container'
+import Search from '../molecules/Search/Search'
 import Box from '../molecules/Box'
 import Button from '../atoms/Button/Button'
 import Modal from '../molecules/Modal/Modal'
@@ -23,10 +24,10 @@ import styles from './Admin.module.sass'
 interface AdminTemplateProps {
     dataVacancy: IVacancyResponse
     dataCompany: ICompanyResponse
+    isActiveTabPag: "companies" | "vacancies"
 }
 
-export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
-    console.log('DataCompany:', dataCompany.content);
+export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminTemplateProps) {
     const dataVacancies = dataVacancy
     const router = useRouter()
     const useCompanyService = new CompanyService()
@@ -146,10 +147,11 @@ export default function Admin({dataVacancy, dataCompany}: AdminTemplateProps) {
                         <span>Compañías</span>
                     </Button>
                 </Box>
-                <Box className={styles.searchBox}>
+                <Search type={isActiveTabPag} />
+                {/* <Box className={styles.searchBox}>
                     <FaSearch />
                     <Input type="text" name='search' placeholder="Buscar..." />
-                </Box>
+                </Box> */}
             </div>
             <Container
                 items={isActiveTab === 'companies' ? dataCompany.content : dataVacancies.content}

@@ -8,9 +8,10 @@ export class CompanyService {
         this.httpClient = new HttpClient();
     }
 
-    async getCompanies(page: number, size: number): Promise<ICompanyResponse> {
+    async getCompanies(page: number, size: number, name?: string): Promise<ICompanyResponse> {
         try {
-            const response: ICompanyResponse = await this.httpClient.get<ICompanyResponse>(`company?page=${page}&size=${size}`);
+            const query = name ? `&name=${name}` : "";
+            const response: ICompanyResponse = await this.httpClient.get<ICompanyResponse>(`company?page=${page}&size=${size}${query}`);
             // console.log('Companies response:', response);
             return response;
         } catch (error) {
