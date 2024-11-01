@@ -51,3 +51,10 @@ export interface ICompany {
     location: string
     contact: string
 }
+
+export interface ICompanyAll {
+    id:       string;
+    name:     string;
+    location?: string;
+    contact?:  string;
+}

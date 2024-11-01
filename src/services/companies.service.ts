@@ -1,4 +1,4 @@
-import { ICompanyResponse, ICompany } from "@/models/jobs.model";
+import { ICompanyResponse, ICompany, ICompanyAll } from "@/models/jobs.model";
 import { HttpClient } from "@/utils/client-http";
 
 export class CompanyService {
@@ -19,6 +19,18 @@ export class CompanyService {
             throw error;
         }
     }
+
+    async getCompaniesAll(): Promise<ICompanyAll[]> {
+        try {
+            const response: ICompanyAll[] = await this.httpClient.get<ICompanyAll[]>(`company/all`);
+            // console.log('Companies response:', response);
+            return response;
+        } catch (error) {
+            console.error('Error getting companies:', error);
+            throw error;
+        }
+    }
+
     async getCompany(id: string): Promise<ICompany> {
         try {
             const response: ICompany = await this.httpClient.get<ICompany>(`company/${id}`);
