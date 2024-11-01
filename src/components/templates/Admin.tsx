@@ -1,6 +1,6 @@
 "use client"
-import React, {useState} from 'react'
-import { IVacancyResponse, ICompanyResponse, IVacancy, ICompany } from '@/models/jobs.model'
+import React, { useState } from 'react'
+import { IVacancyResponse, ICompanyResponse, IVacancy, ICompany, ICompanyAll } from '@/models/jobs.model'
 import { CompanyService } from '@/services/companies.service'
 import { JobService } from '@/services/vacancies.service'
 import { useRouter } from 'next/navigation'
@@ -24,10 +24,11 @@ import styles from './Admin.module.sass'
 interface AdminTemplateProps {
     dataVacancy: IVacancyResponse
     dataCompany: ICompanyResponse
+    dataAllCompany: ICompanyAll[]
     isActiveTabPag: "companies" | "vacancies"
 }
 
-export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminTemplateProps) {
+export default function Admin({ dataVacancy, dataCompany, dataAllCompany, isActiveTabPag }: AdminTemplateProps) {
     const dataVacancies = dataVacancy
     const router = useRouter()
     const useCompanyService = new CompanyService()
@@ -36,11 +37,11 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
     const [isVacancyModalOpen, setIsVacancyModalOpen] = useState<boolean>(false)
     const [isCompanyModalOpen, setIsCompanyModalOpen] = useState<boolean>(false)
 
-    const  [vacancyForm, setVacancyForm] = useState({
+    const [vacancyForm, setVacancyForm] = useState({
         title: '',
         description: '',
         status: '',
-        company: {} as ICompany,
+        company: {} as ICompany | ICompanyAll,
     })
 
     const [companyForm, setCompanyForm] = useState({
@@ -60,7 +61,7 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                 title: vacancyForm.title,
                 description: vacancyForm.description,
                 status: vacancyForm.status,
-                companyId: vacancyForm.company.id!.toString(), 
+                companyId: vacancyForm.company.id!.toString(),
             };
             if (isEditMode && currentEditId) {
                 // Editamos la vacante
@@ -69,7 +70,7 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                 // Creamos nueva vacante
                 await useJobService.addVacancy(vacancyData);
             }
-            setVacancyForm({ title: '', description: '', status: '', company: {} as ICompany });
+            setVacancyForm({ title: '', description: '', status: '', company: {} as ICompany | ICompanyAll });
             setIsVacancyModalOpen(false)
             setIsEditMode(false);
             router.refresh()
@@ -88,19 +89,19 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                 // Creamos nueva compañía
                 await useCompanyService.addCompany(companyForm);
             }
-    
+
             // Reiniciamos el formulario y refrescamos la página.
             setCompanyForm({ name: '', location: '', contact: '' });
             setIsCompanyModalOpen(false);
             setIsEditMode(false); // Salimos del modo edición.
             router.refresh();
-        } catch(error) {
+        } catch (error) {
             console.error('Error en añadir compañía:', error)
         }
     }
 
     const handleOpenModal = () => {
-        if(isActiveTab === 'companies') {
+        if (isActiveTab === 'companies') {
             setIsCompanyModalOpen(true)
         } else {
             setIsVacancyModalOpen(true)
@@ -111,20 +112,28 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
         setIsEditMode(true);
         setCurrentEditId(vacancy.id!);
         setVacancyForm({
-        title: vacancy.title,
-        description: vacancy.description,
-        status: vacancy.status,
-        company: vacancy.company || {} as ICompany,
-    }); // Cargamos los datos en el formulario.
+            title: vacancy.title,
+            description: vacancy.description,
+            status: vacancy.status,
+            company: vacancy.company || {} as ICompany | ICompanyAll,
+        }); // Cargamos los datos en el formulario.
         setIsVacancyModalOpen(true); // Abrimos el modal.
     };
-    
+
     const handleEditCompany = (company: ICompany) => {
         setIsEditMode(true);
         setCurrentEditId(company.id!);
         setCompanyForm(company); // Cargamos los datos en el formulario.
         setIsCompanyModalOpen(true); // Abrimos el modal.
     };
+
+    // para filtar por compañía al seleccionarla en el formulario
+    const [isOpen, setIsOpen] = useState(false);
+    const [filter, setFilter] = useState('');
+
+    const filteredCompanies = dataAllCompany.filter(company =>
+        company.name.toLowerCase().includes(filter.toLowerCase())
+    );
 
     return (
         <div className={styles.container}>
@@ -159,15 +168,15 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                 openModalAdd={handleOpenModal}
                 openModalEdit={(item) =>
                     isActiveTab === 'vacancies'
-                      ? handleEditVacancy(item as IVacancy)
-                      : handleEditCompany(item as ICompany)
-                  }
+                        ? handleEditVacancy(item as IVacancy)
+                        : handleEditCompany(item as ICompany)
+                }
             />
 
             {/* Modal de Vacante */}
             <Modal
                 isOpen={isVacancyModalOpen}
-                onClose={() => {setIsVacancyModalOpen(false); setIsEditMode(false); setCurrentEditId(null); setVacancyForm({ title: '', description: '', status: '', company: {} as ICompany });}}
+                onClose={() => { setIsVacancyModalOpen(false); setIsEditMode(false); setCurrentEditId(null); setVacancyForm({ title: '', description: '', status: '', company: {} as ICompany }); }}
                 title={isEditMode ? "Editar Vacante" : "Agregar Vacante"}
             >
                 <Form onSubmit={handleVacancySubmit}>
@@ -181,9 +190,10 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                 const { name, value } = e.target
                                 setVacancyForm({
-                                ...vacancyForm,
-                                [name]: value
-                            })}
+                                    ...vacancyForm,
+                                    [name]: value
+                                })
+                            }
                             }
                             required
                         />
@@ -196,32 +206,33 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                             value={vacancyForm.description}
                             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
                                 setVacancyForm({
-                                ...vacancyForm,
-                                description: e.target.value
-                            })}}
+                                    ...vacancyForm,
+                                    description: e.target.value
+                                })
+                            }}
                             required
                         />
                     </Box>
                     <Box className={styles.selectBox}>
                         <Label htmlFor="status">Estado</Label>
-                            <Select
-                                name="status"
-                                id='status'
-                                value={vacancyForm.status}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setVacancyForm({
-                                    ...vacancyForm,
-                                    status: e.target.value
-                                })}
-                                options={[
-                                    { value: 'ACTIVE', label: 'Abierta' },
-                                    { value: 'INACTIVE', label: 'Cerrada' }
-                                ]}
-                                placeholder="Seleccione un estado"
-                            />
+                        <Select
+                            name="status"
+                            id='status'
+                            value={vacancyForm.status}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setVacancyForm({
+                                ...vacancyForm,
+                                status: e.target.value
+                            })}
+                            options={[
+                                { value: 'ACTIVE', label: 'Abierta' },
+                                { value: 'INACTIVE', label: 'Cerrada' }
+                            ]}
+                            placeholder="Seleccione un estado"
+                        />
                     </Box>
                     <Box className={styles.selectBox}>
                         <Label htmlFor="company">Compañía</Label>
-                            <Select
+                        {/* <Select
                                 name="company"
                                 id='company'
                                 value={vacancyForm.company?.id || ''}
@@ -236,7 +247,63 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                                     label: company.name
                                 }))}
                                 placeholder="Seleccione una compañía"
-                            />
+                            /> */}
+                        {/* <input 
+                            list="allcompany" 
+                            id="company" 
+                            name="company" 
+                            value={vacancyForm.company?.id || ''} 
+                            onChange={(e) => {
+                                const selectedId = e.target.value;
+                                const selectedCompany = dataAllCompany.find(company => company.id === selectedId);
+                                
+                                setVacancyForm({
+                                    ...vacancyForm,
+                                    company: {
+                                        id: selectedId,
+                                        name: selectedCompany ? selectedCompany.name : ''
+                                    }
+                                });
+                            }}
+                            placeholder='Seleccione una compañía'
+                        />
+
+                        <datalist id="allcompany">
+                            {dataAllCompany.map(company => (
+                                <option key={company.id} value={company.id!.toString()}>
+                                    {company.name}
+                                </option>
+                            ))}
+                        </datalist> */}
+                        <input
+                            type="text"
+                            value={vacancyForm.company?.name || ''}
+                            onChange={(e) => {
+                                setFilter(e.target.value);
+                                setVacancyForm({ ...vacancyForm, company: { id: '', name: e.target.value } });
+                            }}
+                            onFocus={() => setIsOpen(true)}
+                            onBlur={() => setTimeout(() => setIsOpen(false), 100)} // Para permitir seleccionar opciones
+                            placeholder='Seleccione una compañía'
+                            style={{ padding: '.5rem', border: '1px solid #6b7280' , borderRadius: '.375rem' }}
+                        />
+                        {isOpen && (
+                            <ul style={{ border: '1px solid #ccc', maxHeight: '200px', overflowY: 'auto' }}>
+                                {filteredCompanies.map(company => (
+                                    <li key={company.id} onClick={() => {
+                                        setVacancyForm({
+                                            ...vacancyForm,
+                                            company: { id: company.id, name: company.name }
+                                        });
+                                        setFilter(company.name);
+                                        setIsOpen(false);
+                                    }} 
+                                    style={{ cursor: 'pointer'}}>
+                                        {company.name}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </Box>
                     <Button type="submit" variant="primary">
                         {isEditMode ? "Actualizar" : "Agregar"}
@@ -247,8 +314,8 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
             {/* Modal de Compañía */}
             <Modal
                 isOpen={isCompanyModalOpen}
-                onClose={() => {setIsCompanyModalOpen(false); setIsEditMode(false); setCurrentEditId(null); setCompanyForm({ name: '', location: '', contact: '' });}}
-                title={isEditMode ? "Editar Compañía" : "Agregar Compañía"}  
+                onClose={() => { setIsCompanyModalOpen(false); setIsEditMode(false); setCurrentEditId(null); setCompanyForm({ name: '', location: '', contact: '' }); }}
+                title={isEditMode ? "Editar Compañía" : "Agregar Compañía"}
             >
                 <Form onSubmit={handleCompanySubmit}>
                     <Box className={styles.inputBox}>
@@ -301,7 +368,7 @@ export default function Admin({dataVacancy, dataCompany, isActiveTabPag}: AdminT
                     </Button>
                 </Form>
             </Modal>
-            <Pagination dataCompany={dataCompany} dataVacants={dataVacancies} type={isActiveTab}/>
+            <Pagination dataCompany={dataCompany} dataVacants={dataVacancies} type={isActiveTab} />
         </div>
     )
 }

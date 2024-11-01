@@ -28,8 +28,9 @@ export default async function AdminPage({searchParams}: IParamsProps) {
     const name = searchParams.name || "";
     const vacancies = await useJobService.getVacancies(page, size)
     const companies = await useCompanyService.getCompanies(page, size, name)
+    const allCompanies = await useCompanyService.getCompaniesAll()
     
     return (
-        <Admin dataVacancy={vacancies} dataCompany={companies} isActiveTabPag={searchParams.name ? "vacancies" : "companies"}/>
+        <Admin dataVacancy={vacancies} dataCompany={companies} dataAllCompany={allCompanies} isActiveTabPag={searchParams.name ? "vacancies" : "companies"}/>
     )
 }
